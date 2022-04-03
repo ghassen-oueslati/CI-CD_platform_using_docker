@@ -1,0 +1,51 @@
+version: '2'
+services:
+  jenkins:
+    image: jenkins/jenkins:2.332.1-jdk11
+    restart: always
+    container_name: jenkins
+    privileged: true
+    user: root
+    ports:
+      - 8080:8080
+      - 50003:50000
+    volumes:
+      - /home/ghassen/Documents/Internship/jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+  nexus:
+    image: sonatype/nexus3:3.38.0
+    restart: always
+    container_name: nexus
+    volumes:
+      - /home/ghassen/Documents/Internship/nexus-data:/nexus-data
+    ports:
+      - "8081:8081"  
+  sonarqube:
+    https://gitlab.com/ghassen-oueslati/internship.gitimage: sonarqube:9.3.0-community
+    restart: always
+    container_name: sonarqube
+    volumes:
+      - /home/ghassen/Documents/Internship/sonarqube_data:/opt/sonarqube/data
+      - /home/ghassen/Documents/Internship/sonarqube_extensions:/opt/sonarqube/extensions
+      - /home/ghassen/Documents/Internship/sonarqube_logs:/opt/sonarqube/logs
+    ports:
+      - "9000:9000"
+  gitlab:
+    image: 'gitlab/gitlab-ce:14.7.6-ce.0'
+    restart: always
+    container_name: gitlab
+    environment:
+      GITLAB_OMNIBUS_CONFIG: 
+        external_url 'http://localhost'
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /home/ghassen/Documents/Internship/gitlab/config:/etc/gitlab
+      - /home/ghassen/Documents/Internship/gitlab/logs:/var/log/gitlab
+      - /home/ghassen/Documents/Internship/gitlab/data:/var/opt/gitlab
+volumes:
+  nexus-data: {}
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
