@@ -21,7 +21,7 @@ services:
     ports:
       - "8081:8081"  
   sonarqube:
-    image: sonarqube:9.3.0-community
+    https://gitlab.com/ghassen-oueslati/internship.gitimage: sonarqube:9.3.0-community
     restart: always
     container_name: sonarqube
     volumes:
