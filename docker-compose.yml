@@ -23,7 +23,7 @@ services:
     volumes:
       - /home/ghassen/Documents/Internship/nexus-data:/nexus-data
     ports:
-      - "8081:8081"  
+      - 8081:8081
   sonarqube:
     image: sonarqube:9.3.0-community
     restart: always
@@ -33,7 +33,7 @@ services:
       - /home/ghassen/Documents/Internship/sonarqube_extensions:/opt/sonarqube/extensions
       - /home/ghassen/Documents/Internship/sonarqube_logs:/opt/sonarqube/logs
     ports:
-      - "9000:9000"
+      - 9000:9000
     networks:
       vpcbr:
         ipv4_address: 172.18.0.5
@@ -45,8 +45,8 @@ services:
       GITLAB_OMNIBUS_CONFIG: 
         external_url 'http://localhost'
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80
+      - 443:443
     networks:
       vpcbr:
         ipv4_address: 172.18.0.2
