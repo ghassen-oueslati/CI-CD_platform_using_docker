@@ -2,7 +2,6 @@ version: '2'
 services:
   jenkins:
     image: jenkins/jenkins:2.332.1-jdk11
-    restart: always
     container_name: jenkins
     privileged: true
     user: root
@@ -10,15 +9,13 @@ services:
       - 8080:8080
       - 50003:50000
     networks:
-      vpcbr:
+      internship_default:
         ipv4_address: 172.18.0.3
     volumes:
       - /home/ghassen/Documents/Internship/jenkins_data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
   nexus:
     image: sonatype/nexus3:3.38.0
-    
-    restart: always
     container_name: nexus
     volumes:
       - /home/ghassen/Documents/Internship/nexus-data:/nexus-data
@@ -26,7 +23,6 @@ services:
       - 8081:8081
   sonarqube:
     image: sonarqube:9.3.0-community
-    restart: always
     container_name: sonarqube
     volumes:
       - /home/ghassen/Documents/Internship/sonarqube_data:/opt/sonarqube/data
@@ -35,11 +31,10 @@ services:
     ports:
       - 9000:9000
     networks:
-      vpcbr:
+      internship_default:
         ipv4_address: 172.18.0.5
   gitlab:
     image: 'gitlab/gitlab-ce:14.7.6-ce.0'
-    restart: always
     container_name: gitlab
     environment:
       GITLAB_OMNIBUS_CONFIG: 
@@ -48,7 +43,7 @@ services:
       - 80:80
       - 443:443
     networks:
-      vpcbr:
+      internship_default:
         ipv4_address: 172.18.0.2
     volumes:
       - /home/ghassen/Documents/Internship/gitlab/config:/etc/gitlab
@@ -59,3 +54,10 @@ volumes:
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:
+networks:
+    internship_default:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.18.0.0/16"
