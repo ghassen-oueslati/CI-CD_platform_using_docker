@@ -1,32 +1,21 @@
-pipeline 
-{
+pipeline {
     agent any
-
+    environment {
+        PATH = "/usr/bin/mvn:$PATH"
+        }   
     stages 
     {
-        stage('Build') 
+        stage("clone code")
         {
-            steps 
-            {
-                echo 'Hello World'
-            }
+            steps
+                {
+                git branch: 'main',credentialsId: 'be415b2c-6347-48a4-a24b-6cc743c73672', url: 'http://172.18.0.5/root/java-helloworld.git'
+                }
         }
-    
-        stage('Test') 
+        stage("build code")
         {
-            steps 
-            {
-                echo 'Hello World'
-            }
-        }
-    
-
-   
-        stage('Deploy') 
-        {
-            steps 
-            {
-                echo 'Hello World'
+            steps{
+                sh "mvn clean install"
             }
         }
     }
