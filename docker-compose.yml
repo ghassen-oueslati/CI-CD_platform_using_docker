@@ -58,6 +58,5 @@ networks:
     internship_default:
         driver: bridge
         ipam:
-            driver: default
             config:
                 - subnet: "172.18.0.0/16"
