@@ -1,6 +1,5 @@
-# Internship
+# Implementation of  CI/CD platform
 
-"Implementation of  CI/CD platform"
 ==>Creation of CI/CD pipeline on Jenkins in order to build, scan, deploy the artifact to Nexus and deploy the application on the specific environment using docker.
 
 ## Getting started
