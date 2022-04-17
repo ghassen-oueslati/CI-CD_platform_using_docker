@@ -23,7 +23,7 @@ pipeline {
             steps {
                 script {
                     // Let's clone the source
-                    git branch: 'main', credentialsId: 'be415b2c-6347-48a4-a24b-6cc743c73672', url: 'http://172.18.0.2/root/javaapp.git'
+                    git branch: 'main', credentialsId: 'be415b2c-6347-48a4-a24b-6cc743c73672', url: 'http://172.18.0.2/root/java-helloworld.git'
                 }
             }
         }
