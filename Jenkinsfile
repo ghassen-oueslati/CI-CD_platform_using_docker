@@ -23,29 +23,32 @@ pipeline {
             steps {
                 script {
                     // Let's clone the source
-                    git branch: 'main',credentialsId: 'be415b2c-6347-48a4-a24b-6cc743c73672', url: 'http://172.18.0.2/root/java-helloworld.git'
+                    git branch: 'main', credentialsId: 'be415b2c-6347-48a4-a24b-6cc743c73672', url: 'http://172.18.0.2/root/javaapp.git'
                 }
             }
         }
-        stage('Quality Gate Status Check') 
-        {
-            steps
-            {
-                     script 
-                     {
-                         withSonarQubeEnv(installationName: 'sonar') 
-                         {
-                       sh "mvn clean sonar:sonar"                       
-                         }                       
-                     }   
-            }
+        stage('Quality Gate Status Check') {
+            steps{
+                     script {
+                         withSonarQubeEnv(installationName: 'sonar') {
+                       sh "mvn clean sonar:sonar"
+                        
+
+                         }
+                        
+                      
+                     }
+    
+                     }
             
         }
         stage("mvn build") {
             steps {
                 script {
                     // If you are using Windows then you should use "bat" step
-                    sh "mvn package -DskipTests=true"              
+                    // Since unit testing is out of the scope we skip them
+                    sh "mvn package -DskipTests=true"
+                 
                 }
             }
         }
