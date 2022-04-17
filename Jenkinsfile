@@ -27,25 +27,28 @@ pipeline {
                 }
             }
         }
-        stage('Quality Gate Status Check') 
-        {
-            steps
-            {
-                     script 
-                     {
-                         withSonarQubeEnv(installationName: 'sonar') 
-                         {
-                       sh "mvn clean sonar:sonar"                       
-                         }                       
-                     }   
-            }
+        stage('Quality Gate Status Check') {
+            steps{
+                     script {
+                         withSonarQubeEnv(installationName: 'sonar') {
+                       sh "mvn clean sonar:sonar"
+                        
+
+                         }
+                        
+                      
+                     }
+    
+                     }
             
         }
         stage("mvn build") {
             steps {
                 script {
                     // If you are using Windows then you should use "bat" step
-                    sh "mvn package -DskipTests=true"              
+                    // Since unit testing is out of the scope we skip them
+                    sh "mvn package -DskipTests=true"
+                 
                 }
             }
         }
