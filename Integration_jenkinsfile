@@ -1,0 +1,83 @@
+pipeline {
+
+    agent any
+    stages {
+       
+        stage("Clone Code") {
+            steps {
+                script {
+                    // Let's clone the source
+                    git branch: 'main', credentialsId: 'be415b2c-6347-48a4-a24b-6cc743c73672', url: 'http://172.18.02/root/mainapp.git'                  
+                     }
+                }
+        }
+           // ------ Sonar Quality Gate -----
+        stage('Quality Gate Status Check') {
+            steps{
+                     script {
+                    
+                             withSonarQubeEnv(installationName: 'sonar') {
+                                withMaven{
+                                sh "./mvnw sonar:sonar -Dsonar.qualitygate.wait=true"
+                                }
+                            }
+                     }
+                 }
+        }
+        
+        //       ------ Building Angular Project with Npm -----
+        stage("Npm Install") {
+            steps {
+                script {
+                    sh "npm install"
+                }
+            }
+        }           
+    
+        //       ------ Building Jhipster Project with mvn -----
+        stage("mvn build") {
+            steps {
+                script {
+                    withMaven {
+                    sh "./mvnw install"
+                    }
+                }
+            }
+        }      
+        
+        
+        stage("Dockerizing The app") {
+              steps {
+                sh "./mvnw -Pprod verify jib:dockerBuild"
+            }
+        } 
+       
+            /*stage("Start the database") {
+              steps {
+                  sh "docker-compose -f src/main/docker/postgresql.yml up -d"
+              }
+            } */
+            stage("Running the Container") {
+              steps {
+                sh "docker-compose -f src/main/docker/app.yml up -d"
+              }
+            }
+            
+             stage("deploying docker image to nexus") {
+              steps {
+                sh "docker tag mainapp 172.18.0.4:8085/docker-repo/mainapp:latest"
+                sh "docker push 172.18.0.4:8085/docker-repo/mainapp:latest"
+              }
+            }
+
+    }
+    post {
+        success {
+            mail bcc: '', body: 'The CI pipeline was successful', cc: 'chamssidine.abderrahim@etudiant-isi.utm.tn', from: '', replyTo: '', subject: 'Successful Build', to: 'oueslatighassen5201@gmail.com'
+        }
+        failure {
+            mail bcc: '', body: 'The CI pipeline was a failure ', cc: 'chamssidine.abderrahim@etudiant-isi.utm.tn', from: '', replyTo: '', subject: 'failed Build', to: 'oueslatighassen5201@gmail.com'
+        }
+    }
+}
+
