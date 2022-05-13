@@ -1,7 +1,7 @@
 version: '2'
 services:
   jenkins:
-    image: jenkinsmaven
+    image: jenkinsfinal
     container_name: jenkins
     privileged: true
     user: root
@@ -13,7 +13,7 @@ services:
         ipv4_address: 172.18.0.3
     volumes:
       - /home/ghassen/Documents/Internship/jenkins_data:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock 
   nexus:
     image: sonatype/nexus3:3.38.0
     container_name: nexus
@@ -22,7 +22,8 @@ services:
     volumes:
       - /home/ghassen/Documents/Internship/nexus-data:/nexus-data
     ports:
-      - 8081:8081 
+      - 8081:8081
+      - 8085:8085 
     networks:
       internship_default:
         ipv4_address: 172.18.0.4
