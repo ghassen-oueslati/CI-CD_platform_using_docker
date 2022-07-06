@@ -3,73 +3,89 @@ pipeline {
     agent any
     stages {
        
-        stage("Clone Code") {
+        stage("Cloning the Code") {
             steps {
-                script {
-                    // Let's clone the source
-                    git branch: 'main', credentialsId: 'be415b2c-6347-48a4-a24b-6cc743c73672', url: 'http://172.18.02/root/mainapp.git'                  
-                     }
+                   script {
+                sh "echo cloning"             
+                   }
+                
                 }
         }
-           // ------ Sonar Quality Gate -----
-        stage('Quality Gate Status Check') {
+           // ------ SonarQube Analysis -----
+        stage('SonarQube Analysis') {
             steps{
                      script {
                     
-                             withSonarQubeEnv(installationName: 'sonar') {
+                             withSonarQubeEnv(installationName: 'sonar'){
                                 withMaven{
-                                sh "./mvnw sonar:sonar -Dsonar.qualitygate.wait=true"
+                                sh "./mvnw sonar:sonar "
                                 }
                             }
                      }
                  }
         }
+         // ------ Sonar Quality Gate -----
+        stage("Quality Gate") {
+            steps {
+                waitForQualityGate abortPipeline: true
+            }
+        }
         
         //       ------ Building Angular Project with Npm -----
-        stage("Npm Install") {
+      /*  stage("Npm Install") {
             steps {
                 script {
                     sh "npm install"
                 }
             }
-        }           
+        }    */      
     
         //       ------ Building Jhipster Project with mvn -----
-        stage("mvn build") {
+        stage("Building the App") {
             steps {
                 script {
+                    sh "npm install"
                     withMaven {
                     sh "./mvnw install"
                     }
                 }
             }
-        }      
+        }
+        stage('Back-end tests') {
+          steps {
+              script{
+            try {
+                    sh "./mvnw test"
+                } catch(err) {
+                    throw err
+                } finally {
+                  step([$class: 'JUnitResultArchiver', allowEmptyResults: true, testResults: '**/target/surefire-reports/TEST-*.xml'])
+                }
+          }}
+    }
+
+    stage('Front-end tests') {
+        steps{
+            script{
+                   try {
+              sh 'npm install'
+              sh "npm test"
+          } catch(err) {
+              throw err
+          } finally {
+            step([$class: 'JUnitResultArchiver',  allowEmptyResults: true, testResults: '**/target/test-results/karma/TESTS-*.xml'])
+          }
+        }}
+    }
         
-        
+        //       ------ Dockerizing The Project using docker ------
+
         stage("Dockerizing The app") {
               steps {
                 sh "./mvnw -Pprod verify jib:dockerBuild"
             }
         } 
        
-            /*stage("Start the database") {
-              steps {
-                  sh "docker-compose -f src/main/docker/postgresql.yml up -d"
-              }
-            } */
-            stage("Running the Container") {
-              steps {
-                sh "docker-compose -f src/main/docker/app.yml up -d"
-              }
-            }
-            
-             stage("deploying docker image to nexus") {
-              steps {
-                sh "docker tag mainapp 172.18.0.4:8085/docker-repo/mainapp:latest"
-                sh "docker push 172.18.0.4:8085/docker-repo/mainapp:latest"
-              }
-            }
-
     }
     post {
         success {
@@ -80,4 +96,3 @@ pipeline {
         }
     }
 }
-

@@ -1,10 +1,14 @@
 pipeline {
+
     agent any
     environment {
       // ------ DOCKER -----
-        
+        imageName = "springbootdocker"
         registryCredentials = "nexus-user-credentials"
         registry = "172.18.0.4:8081"
+        dockerImage = ''
+        registryCredential = "dockerhub_cred"
+        reg = "devops"
       // --------------------
         // This can be nexus3 or nexus2
         NEXUS_VERSION = "nexus3"
@@ -13,43 +17,58 @@ pipeline {
         // Where your Nexus is running
         NEXUS_URL = "172.18.0.4:8081"
         // Repository where we will upload the artifact
-        NEXUS_REPOSITORY = "artifact-release-repository"
+        NEXUS_REPOSITORY = "artifact-repository"
         // Jenkins credential id to authenticate to Nexus OSS
         NEXUS_CREDENTIAL_ID = "nexus-user-credentials"
     }
-
     stages {
-       //     -------- Pulling the artifact to deploy-------
-        stage("Cloning the Code") {
+       
+        stage("Clone Code") {
             steps {
                 script {
                     // Let's clone the source
-                    git branch: 'main', credentialsId: 'be415b2c-6347-48a4-a24b-6cc743c73672', url: 'http://172.18.02/root/mainapp.git'                  
-                     }
+                    git branch: 'dev', credentialsId: 'be415b2c-6347-48a4-a24b-6cc743c73672', url: 'http://172.18.02/root/mainapp.git'                                                         }
                 }
         }
+           // ------ Sonar Quality Gate -----
+        stage('Analysing the Code') {
+            steps{
+                     script {
+                    
+                             withSonarQubeEnv(installationName: 'sonar'){
+                                withMaven{
+                                sh "./mvnw sonar:sonar "
+                                }
+                            }
+                     }
+                 }
+        }
+        stage("Quality Gate ") {
+            steps {
+                waitForQualityGate abortPipeline: true
+            }
+        }
         
-        //       ------ Building The Application -----
-        stage("Building the App") {
+        //       ------ Building Angular Project with Npm -----
+        stage("Npm Install") {
             steps {
                 script {
                     sh "npm install"
+                    sh "npm run build"
+                }
+            }
+        }           
+    
+        //       ------ Building Jhipster Project with mvn -----
+        stage("mvn build") {
+            steps {
+                script {
                     withMaven {
                     sh "./mvnw install"
                     }
                 }
             }
         }      
-        
-        //       ------ Dockerizing The Project using docker ------
-
-        stage("Dockerizing The app") {
-              steps {
-                sh "./mvnw -Pprod verify jib:dockerBuild"
-            }
-        } 
-             
-       //       ------ Deploying Jar Artifact to Nexus Repository -----
         stage("Publish to nexus") {
             steps {
                 script {
@@ -96,28 +115,29 @@ pipeline {
                     }
                 }
             }
+            
         }
-
-        //------------- deploying docker image to nexus ------------
-        stage("Deploying docker image to nexus") {
-            steps {
+        
+       stage("Dockerizing The app") {
+              steps {
+                sh "./mvnw -Pprod verify jib:dockerBuild"
+            }
+        } 
+            stage("deploying docker image to nexus") {
+              steps {
                 sh "docker login -u admin -p nexusserver 172.18.0.4:8085 "
                 sh "docker tag mainapp 172.18.0.4:8085/mainapp:latest"
                 sh "docker push 172.18.0.4:8085/mainapp:latest"
-            }}
-        stage('Start container') {
-            steps {
-                sh 'docker-compose -f src/main/docker/app.yml up -d'
-                    //sh 'docker-compose ps'
-                  }}
-
-    }
+              }
+            }
+            }
     post {
         success {
-            mail bcc: '', body: 'The CD pipeline was successful ', cc: 'chamssidine.abderrahim@etudiant-isi.utm.tn', from: '', replyTo: '', subject: 'Successful Build', to: 'oueslatighassen5201@gmail.com'
+            mail bcc: '', body: 'The Daily pipeline was successful', cc: 'chamssidine.abderrahim@etudiant-isi.utm.tn', from: '', replyTo: '', subject: 'Successful Build', to: 'oueslatighassen5201@gmail.com'
         }
         failure {
-            mail bcc: '', body: 'The CD pipeline was a failure ', cc: 'chamssidine.abderrahim@etudiant-isi.utm.tn', from: '', replyTo: '', subject: 'failed Build', to: 'oueslatighassen5201@gmail.com'
+            mail bcc: '', body: 'The Daily pipeline was a failure ', cc: 'chamssidine.abderrahim@etudiant-isi.utm.tn', from: '', replyTo: '', subject: 'failed Build', to: 'oueslatighassen5201@gmail.com'
         }
     }
 }
+
